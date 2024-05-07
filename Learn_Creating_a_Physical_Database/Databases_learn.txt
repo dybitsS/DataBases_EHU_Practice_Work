@@ -1,0 +1,174 @@
+CREATE TABLE if not exists "Mountain_name"(
+    "id_mountain_name" serial NOT NULL,
+    "name" VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE
+    "Mountain_name" ADD PRIMARY KEY("id_mountain_name");
+	
+CREATE TABLE if not exists "City_id"(
+    "id_city" serial NOT NULL,
+    "name" VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE
+    "City_id" ADD PRIMARY KEY("id_city");
+	
+CREATE TABLE  if not exists "Adress_id"(
+    "id_adress" serial NOT NULL,
+    "country_id" BIGINT NOT NULL,
+    "city_id" BIGINT NOT NULL,
+    "street_name" VARCHAR(255) NOT NULL,
+    "post_code" VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE
+    "Adress_id" ADD PRIMARY KEY("id_adress");
+	
+CREATE TABLE if not exists "Country_id"(
+    "id_country" serial NOT NULL,
+    "name" VARCHAR(255) NOT NULL
+);
+ALTER TABLE
+    "Country_id" ADD PRIMARY KEY("id_country");
+	
+CREATE TABLE if not exists "Mountain"(
+    "id_mountain" serial NOT NULL,
+    "id_mountain_name" BIGINT NOT NULL,
+    "height" DOUBLE PRECISION NOT NULL,
+    "country_id" BIGINT NOT NULL,
+    "longitude" VARCHAR(255) NOT NULL,
+    "latitude" VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE
+    "Mountain" ADD PRIMARY KEY("id_mountain");
+	
+CREATE TABLE if not exists "Group_Person"(
+    "id_g_p" serial NOT NULL,
+    "id_group" BIGINT NOT NULL,
+    "id_person" BIGINT NOT NULL
+);
+ALTER TABLE
+    "Group_Person" ADD PRIMARY KEY("id_g_p");
+	
+CREATE TABLE if not exists "Action_Group"(
+    "id_AG" serial NOT NULL,
+    "id_action" BIGINT NOT NULL,
+    "id_group" BIGINT NOT NULL
+);
+
+ALTER TABLE
+    "Action_Group" ADD PRIMARY KEY("id_AG");
+	
+CREATE TABLE if not exists "Person"(
+    "id_person" serial NOT NULL,
+    "first_name" VARCHAR(255) NOT NULL,
+    "last_name" VARCHAR(255) NOT NULL,
+    "adress_id" BIGINT NOT NULL,
+    "birth_date" DATE NOT NULL
+);
+
+ALTER TABLE
+    "Person" ADD PRIMARY KEY("id_person");
+	
+CREATE TABLE if not exists "A_group_of_climbers"(
+    "id_group" serial NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "count_of_member" INTEGER NOT NULL
+);
+
+
+ALTER TABLE
+    "A_group_of_climbers" ADD PRIMARY KEY("id_group");
+	
+CREATE TABLE if not exists "Action"(
+    "id_action" serial NOT NULL,
+    "id_mountain" BIGINT NOT NULL,
+    "date_start" DATE NOT NULL,
+    "date_end" DATE NOT NULL
+);
+ALTER TABLE
+    "Action" ADD PRIMARY KEY("id_action");
+ALTER TABLE
+    "Mountain" ADD CONSTRAINT "mountain_country_id_foreign" FOREIGN KEY("country_id") REFERENCES "Country_id"("id_country");
+ALTER TABLE
+    "Person" ADD CONSTRAINT "person_adress_id_foreign" FOREIGN KEY("adress_id") REFERENCES "Adress_id"("id_adress");
+ALTER TABLE
+    "Group_Person" ADD CONSTRAINT "group_person_id_person_foreign" FOREIGN KEY("id_person") REFERENCES "Person"("id_person");
+ALTER TABLE
+    "Adress_id" ADD CONSTRAINT "adress_id_city_id_foreign" FOREIGN KEY("city_id") REFERENCES "City_id"("id_city");
+ALTER TABLE
+    "Mountain" ADD CONSTRAINT "mountain_id_mountain_name_foreign" FOREIGN KEY("id_mountain_name") REFERENCES "Mountain_name"("id_mountain_name");
+ALTER TABLE
+    "Adress_id" ADD CONSTRAINT "adress_id_country_id_foreign" FOREIGN KEY("country_id") REFERENCES "Country_id"("id_country");
+ALTER TABLE
+    "Action_Group" ADD CONSTRAINT "action_group_id_group_foreign" FOREIGN KEY("id_group") REFERENCES "A_group_of_climbers"("id_group");
+ALTER TABLE
+    "Action_Group" ADD CONSTRAINT "action_group_id_action_foreign" FOREIGN KEY("id_action") REFERENCES "Action"("id_action");
+ALTER TABLE
+    "Action" ADD CONSTRAINT "action_id_mountain_foreign" FOREIGN KEY("id_mountain") REFERENCES "Mountain"("id_mountain");
+ALTER TABLE
+    "Group_Person" ADD CONSTRAINT "group_person_id_group_foreign" FOREIGN KEY("id_group") REFERENCES "A_group_of_climbers"("id_group");
+	
+	
+alter table "Mountain_name" add constraint name_unique_constraint unique ("name");	
+alter table "Mountain" add check (height > 0);
+alter table "Person" add check (birth_date > '2000-01-01');
+alter table "Person" add column gender char(1) check(gender in ('M', 'F'));
+alter table "A_group_of_climbers" add check (count_of_member > 0);
+
+
+insert into "Mountain_name" ("name") values ('Everest'), ('Kilimanjaro');
+
+insert into "City_id" ("name") values ('Warsaw'), ('Minsk');
+
+insert into "Country_id" ("name") values ('Poland'), ('Belarus');
+insert into "Country_id" ("name") values ('China');
+insert into "Country_id" ("name") values ('Tanzania');
+
+insert into "Adress_id" ("country_id", "city_id", "street_name", "post_code") values ('1', '1', 'Nowy Swiat', '00-046'), ('2','2','Prityckogo', '220073');
+
+insert into "Mountain" ("id_mountain_name", "height", "country_id", "longitude", "latitude") values (1, 8848, 1, '27.59.17', '86.55.31'), (2, 5892, 2, '03.04.33', '37.21.12');
+
+insert into "Person" ("first_name", "last_name", "adress_id", "birth_date", "gender") values ('Denis', 'Lukashevich', '1', '2001-07-17', 'M'), ('Megan', 'Fox', '2', '2002-09-06', 'F');
+
+insert into "A_group_of_climbers" ("name", "count_of_member") values ('First Try!', 5), ('Climb like potato', 22);
+
+insert into "Group_Person" ("id_group", "id_person") values (1, 1), (2,2);
+
+insert into "Action" ("id_mountain", "date_start", "date_end") values (1, '2024-07-17', '2024-07-28'), (2, '2025-10-10', '2025-10-17');
+
+insert into "Action_Group" ("id_action", "id_group") values (1,1),(2,2);
+
+
+alter table "Mountain_name" add column record_ts date default current_date;
+
+alter table "City_id" add column record_ts date default current_date;
+
+alter table "Country_id" add column record_ts date default current_date;
+
+alter table "Adress_id" add column record_ts date default current_date;
+
+alter table "Person" add column record_ts date default current_date;
+
+alter table "Mountain" add column record_ts date default current_date;
+
+alter table "A_group_of_climbers" add column record_ts date default current_date;
+
+alter table "Group_Person" add column record_ts date default current_date;
+
+alter table "Action" add column record_ts date default current_date;
+
+alter table "Action_Group" add column record_ts date default current_date;
+
+select * from "Mountain_name";
+select * from "City_id";
+select * from "Country_id";
+select * from "Adress_id";
+select * from "Person";
+select * from "Mountain";
+select * from "A_group_of_climbers";
+select * from "Group_Person";
+select * from "Action";
+select * from "Action_Group";

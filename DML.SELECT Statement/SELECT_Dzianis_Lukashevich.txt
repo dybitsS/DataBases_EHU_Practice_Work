@@ -1,0 +1,67 @@
+/*Which staff members made the highest revenue for each store and deserve a bonus for the year 2017?*/
+select ff.staff_id, (select s.first_name from staff s 
+where s.staff_id=ff.staff_id) as "first_name", ff.total
+from (select p.staff_id, sum(p.amount) as total from payment p
+WHERE EXTRACT(YEAR FROM payment_date) = 2017
+group by staff_id
+order by total desc
+limit 1) as ff
+
+-- second queue
+select staff_id, first_name, sum(amount) as "total"
+from staff
+join payment using(staff_id)
+where extract(year from payment_date) = 2017
+group by staff_id, first_name
+order by "total" desc
+limit 1
+
+
+
+/*Which five movies were rented more than the others, and what is the expected age of the audience for these movies?*/
+select title, rating from film f
+where film_id in (select film_id from rental
+join inventory using(inventory_id)
+join film using(film_id)
+group by film_id
+order by count(rental_id) desc
+limit 5)
+
+-- second queue
+select f.title, f.rating
+from film f
+join inventory i on f.film_id = i.film_id
+join rental r on i.inventory_id = r.inventory_id
+group by f.film_id, f.title, f.rating
+order by count(rental_id) desc
+limit 5
+
+
+/*Which actors/actresses didn't act for a longer period of time than the others?*/
+select a.actor_id, a.first_name, a.last_name, 
+       max(f.release_year) as last_film_year,
+       DATE_PART('year', AGE(current_date, TO_DATE(max(f.release_year)::text, 'YYYY'))) as years_since_last_film
+from actor a
+join film_actor fa using(actor_id)
+join film f using(film_id)
+group by a.actor_id, a.first_name, a.last_name
+order by years_since_last_film desc
+
+-- second queue
+with ActorFilms as (
+select a.actor_id, a.first_name, a.last_name, f.release_year,
+row_number() over (partition by a.actor_id order by f.release_year) as film_order
+from actor a
+join film_actor fa using(actor_id)
+join film f using(film_id)),
+FilmDifferences as (
+select af1.actor_id, af1.first_name, af1.last_name,
+af1.release_year as current_film_year,
+af2.release_year as previous_film_year,
+af1.release_year - af2.release_year as years_between_films
+from ActorFilms af1
+join ActorFilms af2 on af1.actor_id = af2.actor_id and af1.film_order = af2.film_order + 1
+)
+select actor_id, first_name, last_name, current_film_year, previous_film_year, years_between_films
+from FilmDifferences
+order by years_between_films desc

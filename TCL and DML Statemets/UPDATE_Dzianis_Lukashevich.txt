@@ -1,0 +1,19 @@
+/*Alter the rental duration and rental rates of the film you inserted before to three weeks and 9.99, respectively.*/
+UPDATE film 
+SET rental_duration = 3, rental_rate = 9.99
+WHERE UPPER(title) = UPPER('The Last: Naruto the Movie')
+
+
+/*Alter any existing customer in the database with at least 10 rental and 10 payment records. Change their personal data to yours (first name, last name, address, etc.). You can use any existing address from the "address" table. Please do not perform any updates on the "address" table, as this can impact multiple records with the same address.*/
+UPDATE customer
+SET first_name = 'Dzianis', last_name = 'Lukashevich', email = 'lukashevich.dzianis@student.ehu.lt', address_id = (select address_id from address where city_id = (select city_id from city where UPPER(city) = UPPER('Wroclaw'))), last_update = now()
+WHERE customer_id = (SELECT r.customer_id
+					 FROM rental r
+					 JOIN payment p ON r.customer_id = p.customer_id
+					 GROUP BY r.customer_id
+					 HAVING COUNT(r.customer_id) >= 10 and COUNT(p.customer_id) >= 10
+					 Limit 1)
+
+/*Change the customer's create_date value to current_date.*/
+UPDATE customer
+SET create_date = current_date

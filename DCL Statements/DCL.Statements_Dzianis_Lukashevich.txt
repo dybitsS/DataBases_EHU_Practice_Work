@@ -1,0 +1,21 @@
+create user rentaluser password 'rentalpassword'
+grant select on customer to rentaluser
+select * from customer 
+create group rental
+grant rental to rentaluser
+grant insert, update, select on rental to rental
+grant usage on sequence rental_rental_id_seq to rental;
+revoke insert on rental from rental
+
+
+create role client_Mary_Smith login password '123'
+
+create or replace view payment_Mary as
+select * from payment
+where customer_id = 1
+
+create or replace view rental_Mary as
+select * from rental
+where customer_id = 1
+
+grant select on payment_Mary,rental_Mary to client_Mary_Smith

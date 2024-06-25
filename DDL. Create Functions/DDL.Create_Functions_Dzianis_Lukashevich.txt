@@ -1,0 +1,57 @@
+create or replace view sales_revenue_by_category_qtr as
+select  c.name, sum(amount) as total_sales 
+from category c
+join film_category fc using(category_id)
+join film f using(film_id)
+join inventory i using(film_id)
+join rental r using(inventory_id)
+join payment p using(rental_id)
+WHERE p.payment_date BETWEEN date_trunc('quarter', '2017-01-20'::timestamp) AND (date_trunc('quarter', '2017-01-20'::timestamp) + '3 months')
+group by c.name
+having (count (*) > 0)
+
+
+
+create or replace function get_sales_revenue_by_category_qtr (date_quarter date)
+returns table(category text, total_sales numeric(5,2)) as
+$$
+declare 
+ quarter_start date := date_trunc('quarter', date_quarter);
+ quarter_end date := (date_trunc('quarter', date_quarter) + '3 months');
+begin
+	return query
+	select  c.name, sum(amount) as total_sales 
+from category c
+join film_category fc using(category_id)
+join film f using(film_id)
+join inventory i using(film_id)
+join rental r using(inventory_id)
+join payment p using(rental_id)
+WHERE p.payment_date BETWEEN quarter_start AND quarter_end
+group by c.name
+having (count (*) > 0);
+end;
+$$
+language plpgsql;
+
+
+
+create or replace function new_movie (movie_title text)
+returns int
+language plpgsql
+as 
+$$
+declare
+	new_film_id int = (select film_id from film order by film_id desc limit 1) +1;
+begin
+ if exists(select language_id from language where name = 'Klingon')
+ 	then 
+		insert into film (film_id, title, rental_rate, rental_duration, replacement_cost,release_year,language_id)
+		values (new_film_id, movie_title, 4.99, 3, 19.99, extract(year from current_date), (select language_id from language where name = 'Klingon'));
+	else 
+		 raise notice 'Language Klington doesnt exist';
+		 return NULL;
+ end if;
+ return new_film_id;
+end;
+$$

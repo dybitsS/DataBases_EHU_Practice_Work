@@ -1,14 +1,41 @@
-create user rentaluser password 'rentalpassword'
+do $$
+begin
+    if not exists (
+        select * from pg_catalog.pg_roles
+        where rolname = 'rentaluser'
+    ) then
+        create user rentaluser password 'rentalpassword';
+    end if;
+end
+$$;
 grant select on customer to rentaluser
 select * from customer 
-create group rental
+do $$
+begin
+    if not exists (
+        select * from pg_catalog.pg_roles
+        where rolname = 'rental'
+    ) then
+        create group rental;
+    end if;
+end
+$$;
 grant rental to rentaluser
 grant insert, update, select on rental to rental
 grant usage on sequence rental_rental_id_seq to rental;
 revoke insert on rental from rental
 
 
-create role client_Mary_Smith login password '123'
+do $$
+begin
+    if not exists (
+        select * from pg_catalog.pg_roles
+        where rolname = 'client_mary_smith'
+    ) then     
+		create role client_Mary_Smith login password '123';
+    end if;
+end
+$$;
 
 create or replace view payment_Mary as
 select * from payment

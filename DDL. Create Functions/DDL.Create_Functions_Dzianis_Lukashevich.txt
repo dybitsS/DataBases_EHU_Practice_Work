@@ -6,10 +6,9 @@ join film f using(film_id)
 join inventory i using(film_id)
 join rental r using(inventory_id)
 join payment p using(rental_id)
-WHERE p.payment_date BETWEEN date_trunc('quarter', '2017-01-20'::timestamp) AND (date_trunc('quarter', '2017-01-20'::timestamp) + '3 months')
+WHERE p.payment_date BETWEEN date_trunc('quarter', current_date::timestamp) AND (date_trunc('quarter', current_date::timestamp) + '3 months')
 group by c.name
 having (count (*) > 0)
-
 
 
 create or replace function get_sales_revenue_by_category_qtr (date_quarter date)
